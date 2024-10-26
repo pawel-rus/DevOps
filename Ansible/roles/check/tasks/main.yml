@@ -1,0 +1,43 @@
+---
+- name: Retrieve the hostname
+  shell: hostname
+  register: hostname_result
+
+- name: Display the hostname
+  debug:
+    msg: "The hostname of {{ inventory_hostname }} is {{ hostname_result.stdout }}."
+
+- name: Display the operating system details
+  debug:
+    msg: "The operating system is {{ ansible_distribution }} {{ ansible_distribution_version }}."
+
+- name: Check available disk space
+  command: df -h
+  register: disk_space_result
+  ignore_errors: yes
+
+- name: Display available disk space
+  debug:
+    msg: |
+      {{ disk_space_result.stdout }}
+
+- name: Check memory usage
+  command: free -h
+  register: memory_result
+  ignore_errors: yes
+
+- name: Display memory usage
+  debug:
+    msg: |
+      {{ memory_result.stdout }}
+
+- name: Check CPU information
+  shell: lscpu | grep 'Model name'
+  register: cpu_info_result
+  ignore_errors: yes
+
+- name: Display CPU information
+  debug:
+    msg: | 
+      {{ cpu_info_result.stdout }}
+
