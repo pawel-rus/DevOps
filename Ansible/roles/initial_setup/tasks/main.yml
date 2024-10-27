@@ -1,0 +1,79 @@
+- name: Ensure the system is up to date
+  yum:
+    name: '*'
+    state: latest
+
+- name: Install essential tools
+  yum:
+    name:
+      - unzip    
+      - wget     
+      - curl  
+      - git  
+      - vim      
+      - nano     
+      - tar            
+    state: present
+
+- name: Check unzip version
+  shell: unzip -v | awk 'NR==1 {print $1, $2}'
+  register: unzip_version
+  failed_when: unzip_version.rc != 0 
+
+- name: Display unzip version
+  debug:
+    msg: "Unzip version: {{ unzip_version.stdout }}"
+
+- name: Check wget version
+  shell: wget --version | awk 'NR==1 {print $1, $2, $3}'
+  register: wget_version
+  failed_when: wget_version.rc != 0
+
+- name: Display wget version
+  debug:
+    msg: "Wget version: {{ wget_version.stdout }}"
+
+- name: Check curl version
+  shell: curl --version | awk 'NR==1 {print $1, $2}'
+  register: curl_version
+  failed_when: curl_version.rc != 0
+
+- name: Check git version
+  command: git --version
+  register: git_version
+  failed_when: git_version.rc != 0
+
+- name: Display git version
+  debug:
+    msg: "Git version: {{ git_version.stdout }}"
+
+- name: Display curl version
+  debug:
+    msg: "Curl version: {{ curl_version.stdout }}"
+
+- name: Verify vim installation
+  command: which vim
+  register: vim_check
+  failed_when: vim_check.rc != 0
+
+- name: Verify nano installation
+  command: which nano
+  register: nano_check
+  failed_when: nano_check.rc != 0
+
+- name: Verify tar installation
+  command: which tar
+  register: tar_check
+  failed_when: tar_check.rc != 0
+
+- name: Display installation summary
+  debug:
+    msg: |
+      Summary of installed packages and their versions:
+      Unzip: {{ unzip_version.stdout if unzip_version.rc == 0 else 'Not installed' }}
+      Wget: {{ wget_version.stdout if wget_version.rc == 0 else 'Not installed' }}
+      Curl: {{ curl_version.stdout if curl_version.rc == 0 else 'Not installed' }}
+      Git: {{ git_version.stdout if git_version.rc == 0 else 'Not installed' }}
+      Vim: {{ 'Installed' if vim_check.rc == 0 else 'Not installed' }}
+      Nano: {{ 'Installed' if nano_check.rc == 0 else 'Not installed' }}
+      Tar: {{ 'Installed' if tar_check.rc == 0 else 'Not installed' }}
