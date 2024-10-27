@@ -1,0 +1,83 @@
+---
+- name: Check if Java is installed
+  command: "java -version"
+  register: java_version_check
+  ignore_errors: yes
+
+- name: Debug message if Java is installed
+  debug:
+    msg: "Java is already installed. Version: {{ java_version_check.stderr }}"
+  when: java_version_check.rc == 0
+
+- name: Prompt user to continue or stop if Java is detected
+  pause:
+    prompt: "Java is already installed. Press Enter to proceed with the playbook or type 'stop' to exit."
+  when: java_version_check.rc == 0
+  register: user_choice
+
+- name: Stop playbook if user chooses not to proceed
+  meta: end_play
+  when: java_version_check.rc == 0 and user_choice == "stop"
+
+- name: Create Java installation directory if it doesn't exist
+  file:
+    path: "{{ java_install_dir }}"
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '0755'
+  when: java_version_check.rc != 0 
+
+- name: Copy JDK archiwe to target machine
+  copy:
+    src: "files/{{ java_archive }}"
+    dest: "{{ java_remote_copy_path }}"
+
+- name: Extract JDK archive to {{ user }}'s home
+  unarchive:
+    src: "{{ java_remote_copy_path }}"
+    dest: "{{ java_install_dir }}"
+    remote_src: yes
+    owner: "{{ user }}"
+    group: "{{ user }}"
+
+- name: Check if Java {{ java_version }} was extracted successfully
+  command: "{{ java_install_dir }}/jdk-{{ java_version }}/bin/java -version"
+  register: extracted_java_version_check
+
+- name: Debug message if Java is successfully extracted
+  debug:
+    msg: "Java has been successfully installed. Version: {{ extracted_java_version_check.stderr }}"
+  when: extracted_java_version_check.rc == 0
+
+- name: Set JAVA_HOME if not already present
+  lineinfile:
+    path: "/home/{{ user }}/.bashrc"
+    line: "export JAVA_HOME={{ java_home }}"
+    create: yes
+    state: present
+    regexp: '^export JAVA_HOME='
+
+- name: Update PATH with JAVA_HOME/bin if not already present
+  lineinfile:
+    path: "/home/{{ user }}/.bashrc"
+    line: "export PATH=$PATH:$JAVA_HOME/bin"
+    create: yes
+    state: present
+    regexp: '^export PATH=.*JAVA_HOME/bin'
+
+- name: Source .bashrc to apply JAVA_HOME and PATH for {{ user }}
+  shell: "source /home/{{ user }}/.bashrc"
+  args:
+    executable: /bin/bash
+  become_user: "{{ user }}"
+
+- name: Verify JAVA_HOME and PATH are set
+  shell: "echo $JAVA_HOME && echo $PATH"
+  args:
+    executable: /bin/bash
+  register: env_check
+
+- name: Debug JAVA_HOME and PATH values after sourcing .bashrc
+  debug:
+    msg: "JAVA_HOME: {{ env_check.stdout_lines[0] }}, PATH: {{ env_check.stdout_lines[1] }}"

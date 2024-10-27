@@ -1,0 +1,8 @@
+---
+- name: Java installation
+  hosts: app_servers
+  gather_facts: no
+  roles:
+    - java_install
+  vars_files:
+    - vars/java_vars.yml
