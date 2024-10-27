@@ -1,2 +1,3 @@
-DevOps/Ansible/vars/passwords.yml
 
+Ansible/vars/passwords.yml
+Ansible/vars/vault.yml
