@@ -50,24 +50,46 @@
     msg: "Java has been successfully installed. Version: {{ extracted_java_version_check.stderr }}"
   when: extracted_java_version_check.rc == 0
 
-- name: Set JAVA_HOME if not already present
+# - name: Set JAVA_HOME if not already present
+#   lineinfile:
+#     path: "/home/{{ user }}/.bashrc"
+#     line: "export JAVA_HOME={{ java_home }}"
+#     create: yes
+#     state: present
+#     regexp: '^export JAVA_HOME='
+
+# - name: Update PATH with JAVA_HOME/bin if not already present
+#   lineinfile:
+#     path: "/home/{{ user }}/.bashrc"
+#     line: "export PATH=$PATH:$JAVA_HOME/bin"
+#     create: yes
+#     state: present
+#     regexp: '^export PATH=.*JAVA_HOME/bin'
+
+# - name: Source .bashrc to apply JAVA_HOME and PATH for {{ user }}
+#   shell: "source /home/{{ user }}/.bashrc"
+#   args:
+#     executable: /bin/bash
+#   become_user: "{{ user }}"
+
+- name: Set JAVA_HOME in .bash_profile permanently
   lineinfile:
-    path: "/home/{{ user }}/.bashrc"
+    path: "/home/{{ user }}/.bash_profile"
     line: "export JAVA_HOME={{ java_home }}"
     create: yes
     state: present
     regexp: '^export JAVA_HOME='
 
-- name: Update PATH with JAVA_HOME/bin if not already present
+- name: Update PATH with JAVA_HOME/bin in .bash_profile permanently
   lineinfile:
-    path: "/home/{{ user }}/.bashrc"
+    path: "/home/{{ user }}/.bash_profile"
     line: "export PATH=$PATH:$JAVA_HOME/bin"
     create: yes
     state: present
     regexp: '^export PATH=.*JAVA_HOME/bin'
 
-- name: Source .bashrc to apply JAVA_HOME and PATH for {{ user }}
-  shell: "source /home/{{ user }}/.bashrc"
+- name: Source .bash_profile to apply JAVA_HOME and PATH for {{ user }}
+  shell: "source /home/{{ user }}/.bash_profile"
   args:
     executable: /bin/bash
   become_user: "{{ user }}"
@@ -78,6 +100,14 @@
     executable: /bin/bash
   register: env_check
 
-- name: Debug JAVA_HOME and PATH values after sourcing .bashrc
+- name: Debug JAVA_HOME and PATH values after sourcing .bash_profile
   debug:
     msg: "JAVA_HOME: {{ env_check.stdout_lines[0] }}, PATH: {{ env_check.stdout_lines[1] }}"
+
+- name: Verify Java version after installation
+  command: "java -version"
+  register: final_java_check
+
+- name: Display final Java version check result
+  debug:
+    msg: "Final Java version verification: {{ final_java_check.stderr }}"
