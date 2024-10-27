@@ -1,5 +1,5 @@
 ---
-- name: Check system
+- name: Check system parameters
   hosts: all
   gather_facts: yes
   roles:
