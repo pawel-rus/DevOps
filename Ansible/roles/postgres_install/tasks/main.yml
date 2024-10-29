@@ -1,0 +1,38 @@
+---
+- name: Ensure postgres group exists
+  group:
+    name: "{{ postgresql_group }}"
+    state: present
+
+- name: Ensure postgres user exists
+  user:
+    name: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    home: "/home/{{ postgresql_user }}"
+    create_home: yes
+    shell: /bin/bash
+    state: present
+
+- name: Create installation and data directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"
+    mode: "0755"
+  loop:
+    - "{{ postgresql_install_dir }}"
+    - "{{ postgresql_data_dir }}"
+
+- name: Copy archiwe to target machine
+  copy:
+    src: "files/{{ postgres_archive }}"
+    dest: "{{ postgres_remote_copy_path }}"
+
+- name: Extract JDK archive to {{ postgresql_install_dir }}
+  unarchive:
+    src: "{{ postgres_remote_copy_path }}"
+    dest: "{{ postgresql_install_dir }}"
+    remote_src: yes
+    owner: "{{ postgresql_user }}"
+    group: "{{ postgresql_group }}"

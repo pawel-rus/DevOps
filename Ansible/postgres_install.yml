@@ -1,0 +1,9 @@
+---
+- name: Install Postgresql-{{ postgresql_version }} from Binary Source
+  hosts: db_servers
+  gather_facts: no
+  become: true
+  vars_files:
+    - vars/postgresql_vars.yml
+  roles:
+    - postgres_install

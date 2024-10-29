@@ -1,0 +1,9 @@
+---
+postgresql_version: "16.0"
+postgresql_archive: "postgresql-{{ postgresql_version: }}.tar.gz"
+postgresql_remote_copy_path: "/tmp/{{ postgresql_archive }}"
+postgresql_install_dir: "/opt/postgresql"
+postgresql_data_dir: "/var/lib/postgresql/data"
+postgresql_bin_path: "{{ postgresql_install_dir }}/bin"
+postgresql_user: "postgres"
+postgresql_group: "postgres"
