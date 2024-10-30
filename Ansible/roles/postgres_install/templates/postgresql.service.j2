@@ -1,0 +1,14 @@
+[Unit]
+Description=PostgreSQL database server
+After=network.target
+
+[Service]
+Type=forking
+User={{ postgresql_user }}
+Group={{ postgresql_group }}
+ExecStart={{ postgresql_bin_path }}/pg_ctl start -D {{ postgresql_data_dir }} -l {{ postgresql_data_dir }}/logfile
+ExecStop={{ postgresql_bin_path }}/pg_ctl stop -D {{ postgresql_data_dir }}
+ExecReload={{ postgresql_bin_path }}/pg_ctl reload -D {{ postgresql_data_dir }}
+
+[Install]
+WantedBy=multi-user.target

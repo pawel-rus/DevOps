@@ -29,10 +29,52 @@
     src: "files/{{ postgres_archive }}"
     dest: "{{ postgres_remote_copy_path }}"
 
-- name: Extract JDK archive to {{ postgresql_install_dir }}
+- name: Extract Postgres-{{ postgresql_version }} archive to {{ postgresql_install_dir }}
   unarchive:
     src: "{{ postgres_remote_copy_path }}"
     dest: "{{ postgresql_install_dir }}"
     remote_src: yes
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
+
+- name: Configure PostgreSQL for installation
+  command: ./configure --prefix={{ postgresql_install_dir }} --datadir={{ postgresql_data_dir }}
+  args:
+    chdir: "{{ postgresql_install_dir }}/postgresql-{{ postgresql_version }}"
+  become: true
+  become_user: "{{ postgresql_user }}"
+
+- name: Compile PostgreSQL
+  command: make
+  args:
+    chdir: "{{ postgresql_install_dir }}/postgresql-{{ postgresql_version }}"
+  become: true
+  become_user: "{{ postgresql_user }}"
+
+- name: Install PostgreSQL
+  command: make install
+  args:
+    chdir: "{{ postgresql_install_dir }}/postgresql-{{ postgresql_version }}"
+  become: true
+  become_user: "{{ postgresql_user }}"
+
+- name: Initialize PostgreSQL database
+  command: "{{ postgresql_bin_path }}/initdb -D {{ postgresql_data_dir }}"
+  become: true
+  become_user: "{{ postgresql_user }}"
+  when: "'PG_VERSION' not in lookup('fileglob', postgresql_data_dir)"
+
+- name: Create PostgreSQL systemd service file
+  template:
+    src: postgresql.service.j2
+    dest: /etc/systemd/system/postgresql.service
+  notify: Restart PostgreSQL
+
+- name: Reload systemd
+  command: systemctl daemon-reload
+
+- name: Enable and start PostgreSQL service
+  systemd:
+    name: postgresql
+    enabled: true
+    state: started
