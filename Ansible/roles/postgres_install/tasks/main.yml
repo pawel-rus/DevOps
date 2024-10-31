@@ -13,6 +13,17 @@
     shell: /bin/bash
     state: present
 
+- name: Install Development Tools
+  package:
+    name:
+      - gcc  
+      - make   
+      - glibc-devel
+      - libicu-devel
+      - readline-devel
+      - zlib-devel        
+    state: present
+
 - name: Create installation and data directories
   file:
     path: "{{ item }}"
@@ -26,12 +37,12 @@
 
 - name: Copy archiwe to target machine
   copy:
-    src: "files/{{ postgres_archive }}"
-    dest: "{{ postgres_remote_copy_path }}"
+    src: "files/{{ postgresql_archive }}"
+    dest: "{{ postgresql_remote_copy_path }}"
 
 - name: Extract Postgres-{{ postgresql_version }} archive to {{ postgresql_install_dir }}
   unarchive:
-    src: "{{ postgres_remote_copy_path }}"
+    src: "{{ postgresql_remote_copy_path }}"
     dest: "{{ postgresql_install_dir }}"
     remote_src: yes
     owner: "{{ postgresql_user }}"
