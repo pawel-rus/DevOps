@@ -78,3 +78,36 @@
     name: postgresql
     enabled: true
     state: started
+
+- name: Set PG_HOME in .bash_profile permanently
+  lineinfile:
+    path: "/home/{{ postgresql_user }}/.bash_profile"
+    line: "export PG_HOME={{ postgresql_bin_path }}"
+    create: yes
+    state: present
+    regexp: '^export PG_HOME='
+
+- name: Update PATH with PG_HOME/bin in .bash_profile permanently
+  lineinfile:
+    path: "/home/{{ postgresql_user }}/.bash_profile"
+    line: "export PATH=$PATH:$PG_HOME"
+    create: yes
+    state: present
+    regexp: '^export PATH=.*PG_HOME'
+
+- name: Source .bash_profile to apply PG_HOME and PATH for {{ postgresql_user }}
+  shell: "source /home/{{ postgresql_user }}/.bash_profile"
+  args:
+    executable: /bin/bash
+  become_user: "{{ postgresql_user }}"
+
+- name: Verify PG_HOME and PATH are set
+  shell: "echo $PG_HOME && echo $PATH"
+  args:
+    executable: /bin/bash
+  register: pg_env_check
+  become_user: "{{ postgresql_user }}"
+
+- name: Debug PG_HOME and PATH values after sourcing .bash_profile
+  debug:
+    msg: "PG_HOME: {{ pg_env_check.stdout_lines[0] }}, PATH: {{ pg_env_check.stdout_lines[1] }}"
