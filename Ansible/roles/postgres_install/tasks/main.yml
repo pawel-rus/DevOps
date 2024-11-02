@@ -49,7 +49,7 @@
     group: "{{ postgresql_group }}"
 
 - name: Configure PostgreSQL for installation
-  command: ./configure --prefix={{ postgresql_install_dir }} --datadir={{ postgresql_data_dir }}
+  command: ./configure --prefix={{ postgresql_install_dir }} --datadir={{ postgresql_install_dir }}/share
   args:
     chdir: "{{ postgresql_install_dir }}/postgresql-{{ postgresql_version }}"
   become: true
@@ -74,36 +74,22 @@
 #     path: "{{ postgresql_data_dir }}"
 #     state: absent
 #   # when: "'PG_VERSION' in lookup('fileglob', postgresql_data_dir)"
-- name: Clear PostgreSQL data directory if it exists
-  command: rm -rf {{ postgresql_data_dir }}/*
-  become: true
-  ignore_errors: yes
+# - name: Clear PostgreSQL data directory if it exists
+#   command: rm -rf {{ postgresql_data_dir }}/*
+#   become: true
+#   ignore_errors: yes
 
-- name: Initialize PostgreSQL database
-  command: "{{ postgresql_bin_path }}/initdb -D {{ postgresql_data_dir }}"
-  become: true
-  become_user: "{{ postgresql_user }}"
-  # when: "'PG_VERSION' not in lookup('fileglob', postgresql_data_dir)"
-
-- name: Create PostgreSQL systemd service file
-  template:
-    src: postgresql.service.j2
-    dest: /etc/systemd/system/postgresql.service
-  notify: Restart PostgreSQL
-
-- name: Reload systemd
-  command: systemctl daemon-reload
-
-- name: Enable and start PostgreSQL service
-  systemd:
-    name: postgresql
-    enabled: true
-    state: started
+# - name: Initialize PostgreSQL database
+#   command: "{{ postgresql_bin_path }}/initdb -D {{ postgresql_data_dir }}"
+#   become: true
+#   become_user: "{{ postgresql_user }}"
+#   environment:
+#     PATH: "{{ postgresql_bin_path }}:{{ ansible_env.PATH }}"
 
 - name: Set PG_HOME in .bash_profile permanently
   lineinfile:
     path: "/home/{{ postgresql_user }}/.bash_profile"
-    line: "export PG_HOME={{ postgresql_bin_path }}"
+    line: "export PG_HOME={{ postgresql_install_dir }}"
     create: yes
     state: present
     regexp: '^export PG_HOME='
@@ -111,7 +97,7 @@
 - name: Update PATH with PG_HOME/bin in .bash_profile permanently
   lineinfile:
     path: "/home/{{ postgresql_user }}/.bash_profile"
-    line: "export PATH=$PATH:$PG_HOME"
+    line: "export PATH=$PATH:$PG_HOME/bin"
     create: yes
     state: present
     regexp: '^export PATH=.*PG_HOME'
@@ -132,3 +118,23 @@
 - name: Debug PG_HOME and PATH values after sourcing .bash_profile
   debug:
     msg: "PG_HOME: {{ pg_env_check.stdout_lines[0] }}, PATH: {{ pg_env_check.stdout_lines[1] }}"
+
+- name: Initialize PostgreSQL database
+  command: "{{ postgresql_bin_path }}/initdb -D {{ postgresql_data_dir }}"
+
+  become: true
+  become_user: "{{ postgresql_user }}"
+
+- name: Create PostgreSQL systemd service file
+  template:
+    src: postgresql.service.j2
+    dest: /etc/systemd/system/postgresql.service
+
+- name: Reload systemd
+  command: systemctl daemon-reload
+
+- name: Enable and start PostgreSQL service
+  systemd:
+    name: postgresql
+    enabled: true
+    state: started
