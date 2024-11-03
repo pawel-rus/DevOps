@@ -69,23 +69,6 @@
   become: true
   become_user: "{{ postgresql_user }}"
 
-# - name: Clear PostgreSQL data directory if it exists
-#   file:
-#     path: "{{ postgresql_data_dir }}"
-#     state: absent
-#   # when: "'PG_VERSION' in lookup('fileglob', postgresql_data_dir)"
-# - name: Clear PostgreSQL data directory if it exists
-#   command: rm -rf {{ postgresql_data_dir }}/*
-#   become: true
-#   ignore_errors: yes
-
-# - name: Initialize PostgreSQL database
-#   command: "{{ postgresql_bin_path }}/initdb -D {{ postgresql_data_dir }}"
-#   become: true
-#   become_user: "{{ postgresql_user }}"
-#   environment:
-#     PATH: "{{ postgresql_bin_path }}:{{ ansible_env.PATH }}"
-
 - name: Set PG_HOME in .bash_profile permanently
   lineinfile:
     path: "/home/{{ postgresql_user }}/.bash_profile"
@@ -121,7 +104,6 @@
 
 - name: Initialize PostgreSQL database
   command: "{{ postgresql_bin_path }}/initdb -D {{ postgresql_data_dir }}"
-
   become: true
   become_user: "{{ postgresql_user }}"
 
