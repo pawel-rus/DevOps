@@ -1,2 +1,4 @@
 *.yml linguist-detectable=true
 *.yml linguist-language=YAML
+*.groovy linguist-detectable=true
+*.groovy linguist-language=Groovy
