@@ -1,9 +1,7 @@
 ---
 - name: Basic tools installation
-  hosts: all
+  hosts: privileged_servers 
   gather_facts: no
-  become: yes
-  vars_files:
-    - vars/passwords.yml
   roles:
     - initial_setup
+    - docker_setup
