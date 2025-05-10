@@ -1,0 +1,4 @@
+*.log
+*.tsv
+*.csv
+weather_report
