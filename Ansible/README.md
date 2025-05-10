@@ -1,4 +1,3 @@
-Jasne! Oto przykładowe README dla podkatalogu `Ansible`, które możesz umieścić w tym katalogu:
 # Ansible Automation
 
 This directory contains various **Ansible playbooks** and **roles** designed for infrastructure automation. The playbooks and roles automate the setup, configuration, and management of different services and components across your infrastructure, such as PostgreSQL, Java, Docker, and more.
@@ -28,6 +27,13 @@ This directory contains various **Ansible playbooks** and **roles** designed for
   * `postgresql_vars.yml`: Variables related to PostgreSQL installation and configuration.
   * `java_vars.yml`: Variables related to Java installation and configuration.
 
+## Prerequisites
+
+To use these playbooks, you need to have `Ansible` installed. You can install `Ansible` using the following command:
+```bash
+sudo apt-get install ansible  # For Ubuntu/Debian
+brew install ansible          # For macOS
+```
 ## Usage
 
 To use these Ansible playbooks, follow these steps:
